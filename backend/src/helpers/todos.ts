@@ -5,6 +5,7 @@ import { CreateTodoRequest } from '../requests/CreateTodoRequest'
 import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
 import { createLogger } from '../utils/logger'
 import * as uuid from 'uuid'
+import { UserInputError } from '../utils/errors';
 
 const logger = createLogger('todos')
 
@@ -14,6 +15,10 @@ const todoStorage = new TodoStorage()
 export async function createTodo(userId: string, data: CreateTodoRequest): Promise<TodoItem> {
     const id = uuid.v4()
     const createDate = new Date().toISOString()
+
+    if(data.name.trim() === '') {
+        throw new UserInputError("Name property is empty.");
+    }
 
     const newTodo: TodoItem = {
         todoId: id,

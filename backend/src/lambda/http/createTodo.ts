@@ -6,9 +6,13 @@ import { CreateTodoRequest } from '../../requests/CreateTodoRequest'
 import { getUserId } from '../utils';
 import { createTodo } from '../../helpers/todos'
 import { TodoItem } from '../../models/TodoItem'
+import { UserInputError } from '../../utils/errors'
 
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+
+    let statusCode: number;
+    let body: string;
     
     try {
       const userId = getUserId(event)
@@ -16,22 +20,28 @@ export const handler = middy(
 
       const newTodo: TodoItem = await createTodo(userId, newTodoData)
 
-      return {
-        statusCode: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*'
-        },
-        body: JSON.stringify({
-          item: newTodo
-        })
-      }
+      statusCode = 200;
+      body = JSON.stringify({
+        item: newTodo
+      })
     } catch(e: any) {
+
+      if(e instanceof UserInputError) {
+        statusCode = 400;
+        body = '';
+      }
+      else {
+        statusCode = 500;
+        body = '';
+      }
+    } finally {
+
       return {
-        statusCode: 500,
+        statusCode: statusCode,
         headers: {
           'Access-Control-Allow-Origin': '*'
         },
-        body: null
+        body: body
       }
     }
   }

@@ -55,7 +55,7 @@ export async function deleteTodo(userId: string, todoId: string) {
         return;
     }
 
-    await todoAccess.deleteTodo(todoId);
+    await todoAccess.deleteTodo(targetTodo.userId, todoId);
     return;
 }
 
@@ -90,7 +90,7 @@ export async function updateAttachmentUrl(userId: string, todoId: string, attach
         return null;
     }
 
-    await todoAccess.updateAttachmentUrl(todoId,  attachmentUrl)
+    await todoAccess.updateAttachmentUrl(item.userId, todoId,  attachmentUrl)
 }
 
 export async function generateSignedUploadUrl(attachmentId: string): Promise<string> {

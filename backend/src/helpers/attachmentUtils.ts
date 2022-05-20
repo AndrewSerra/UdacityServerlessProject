@@ -1,9 +1,8 @@
 import * as AWS from 'aws-sdk'
-// import * as AWSXRay from 'aws-xray-sdk'
+const AWSXRay = require('aws-xray-sdk')
 
-// const XAWS = AWSXRay.captureAWS(AWS)
+const XAWS = AWSXRay.captureAWS(AWS)
 
-// TODO: Implement the fileStogare logic
 export class TodoStorage {
 
     s3Client: AWS.S3;
@@ -11,7 +10,7 @@ export class TodoStorage {
     signedUrlExpiration: number;
 
     constructor() {
-        this.s3Client = new AWS.S3({ signatureVersion: 'v4' });
+        this.s3Client = new XAWS.S3({ signatureVersion: 'v4' });
         this.s3BucketName = process.env.ATTACHMENT_S3_BUCKET;
         this.signedUrlExpiration = Number(process.env.SIGNED_URL_EXPIRATION);
     }

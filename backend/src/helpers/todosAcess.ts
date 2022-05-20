@@ -1,11 +1,10 @@
 import * as AWS from 'aws-sdk'
-// import * as AWSXRay from 'aws-xray-sdk'
-import { DocumentClient } from 'aws-sdk/clients/dynamodb'
+const AWSXRay = require('aws-xray-sdk')
 import { createLogger } from '../utils/logger'
 import { TodoItem } from '../models/TodoItem'
 import { TodoUpdate } from '../models/TodoUpdate';
 
-// const XAWS = AWSXRay.captureAWS(AWS)
+const XAWS = AWSXRay.captureAWS(AWS)
 
 const logger = createLogger('TodosAccess')
 
@@ -16,7 +15,7 @@ export class TodosAccess {
     todosTableIndex: string;
 
     constructor() {
-        this.documentClient = new DocumentClient();
+        this.documentClient = new XAWS.DynamoDB.DocumentClient();
         this.todosTableName = process.env.TODOS_TABLE;
         this.todosTableIndex = process.env.TODOS_BY_USER_INDEX;
     }
@@ -52,6 +51,7 @@ export class TodosAccess {
             const todo = await this.documentClient.get({
                 TableName: this.todosTableName,
                 Key: {
+                    userId: userId,
                     todoId: todoId
                 }
             }).promise()
@@ -75,6 +75,8 @@ export class TodosAccess {
                 TableName: this.todosTableName,
                 Item: data
             }).promise()
+
+            logger.info(`Successfully added todo with name ${data.name} and id ${data.todoId} for user ${userId}`)
         } catch (e: any) {
             logger.error(`Error adding new todo with name ${data.name} and id ${data.todoId} for user ${userId}: ${e.message}`)
         }
@@ -109,7 +111,7 @@ export class TodosAccess {
         return;
     }
 
-    async deleteTodo(todoId: string) {
+    async deleteTodo(userId: string, todoId: string) {
 
         logger.info(`Deleting todo with id ${todoId}`)
 
@@ -117,6 +119,7 @@ export class TodosAccess {
             await this.documentClient.delete({
                 TableName: this.todosTableName,
                 Key: {
+                    userId: userId,
                     todoId: todoId
                 }
             }).promise()
@@ -126,13 +129,14 @@ export class TodosAccess {
         return;
     }
 
-    async updateAttachmentUrl(todoId: string, newAttachmentUrl: string) {
+    async updateAttachmentUrl(userId: string, todoId: string, newAttachmentUrl: string) {
 
         logger.info(`Updating attachment url for todo with id ${todoId} in table ${this.todosTableName}`)
 
         await this.documentClient.update({
             TableName: this.todosTableName,
             Key: {
+                userId: userId,
                 todoId: todoId
             },
             UpdateExpression: 'set attachmentUrl = :attachmentUrl',
